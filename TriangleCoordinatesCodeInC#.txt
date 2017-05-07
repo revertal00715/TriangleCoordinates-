@@ -1,0 +1,256 @@
+/* Written by Scott A. Fleming on 04-16-2017 
+ * 
+ * Sample output:
+A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12
+B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12
+C1 C2 C3 C4 C5 C6 C7 C8 C9 C10 C11 C12
+D1 D2 D3 D4 D5 D6 D7 D8 D9 D10 D11 D12
+E1 E2 E3 E4 E5 E6 E7 E8 E9 E10 E11 E12
+F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12
+
+Retriving locaton of triangle: tri.pT.X = 30, tri.pT.Y = 0, tri.pC.X = 30, tri.pC.Y = 10, tri.pB.X = 40, tri.pB.Y = 10.
+
+The triangle is located at: A7
+Would you like to enter a triangle, yes / exit?
+yes
+Enter top point in the format *,*.
+30,10
+Enter right angle point in the format *,*.
+40,10
+Enter bottom point in the format *,*.
+40,20
+
+The triangle is located at: B8
+Would you like to enter a triangle, yes / exit? */
+
+using System;
+using Triangle;
+
+namespace TriangleN
+{
+    class Program
+    {
+        public struct Point
+        {
+            int x;
+            int y;
+
+            public int X { get => x; set => x = value; }
+            public int Y { get => y; set => y = value; }
+        }
+
+        public struct Triangle
+        {
+            public Point pT;
+            public Point pB;
+            public Point pC;
+        }
+
+        static Triangle tri = new Triangle();
+        static string lastRow;
+        public static string LastRow { get => lastRow; set => lastRow = value; }
+
+        static void Main(string[] args)
+        {
+            //Print the coordinates of the triangles.
+            PrintImage(60, 10);
+            Console.WriteLine(System.Environment.NewLine);
+
+            //Set up triangle for testing for location.
+            tri.pT.X = 30;
+            tri.pT.Y = 0;
+            tri.pC.X = 30;
+            tri.pC.Y = 10;
+            tri.pB.X = 40;
+            tri.pB.Y = 10;
+            Console.WriteLine("Retriving locaton of triangle: tri.pT.X = 30, tri.pT.Y = 0, tri.pC.X = 30, tri.pC.Y = 10, tri.pB.X = 40, tri.pB.Y = 10.");
+            Console.WriteLine( "The triangle is located at: " + GetRowColumn(tri, 5));
+
+            string cIn = "";
+            string []cIn2;
+            Console.WriteLine("Would you like to enter a triangle, yes / exit?");
+            cIn = Console.ReadLine();
+
+            while (!cIn.Equals("exit", StringComparison.InvariantCultureIgnoreCase))
+            {
+                try
+                {
+                    //Console.WriteLine("Enter points in the format *,*");
+                    Console.WriteLine("Enter top point in the format *,*.");
+                    cIn2 = Console.ReadLine().Split(',');
+                    tri.pT.X = Convert.ToInt32(cIn2[0]);
+                    tri.pT.Y = Convert.ToInt32(cIn2[1]);
+
+                    Console.WriteLine("Enter right angle point in the format *,*.");
+                    cIn2 = Console.ReadLine().Split(',');
+                    tri.pC.X = Convert.ToInt32(cIn2[0]);
+                    tri.pC.Y = Convert.ToInt32(cIn2[1]);
+
+                    Console.WriteLine("Enter bottom point in the format *,*.");
+                    cIn2 = Console.ReadLine().Split(',');
+                    tri.pB.X = Convert.ToInt32(cIn2[0]);
+                    tri.pB.Y = Convert.ToInt32(cIn2[1]);
+
+                    CheckTriagleSize(tri);
+                    Console.WriteLine("The triangle is located at: " + GetRowColumn(tri, 5));
+                    Console.WriteLine("Would you like to enter a triangle, yes / exit?");
+                    cIn = Console.ReadLine();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("{0} Exception caught.", e.Message);
+                    Console.Write(System.Environment.NewLine);
+                }
+            }
+            
+        }
+
+        static void CheckTriagleSize(Triangle t)
+        {
+            if (t.pT.X == t.pC.X)
+            {
+                if ((t.pC.Y - t.pT.Y != 10) || (t.pB.X - t.pC.X != 10))
+                    throw new TriangleSizeException("Invalid triangle size.");
+            }
+            else if (t.pT.Y == t.pC.Y)
+            {
+                if ((t.pC.X - t.pT.X != 10) || (t.pB.Y - t.pC.Y != 10))
+                    throw new TriangleSizeException("Invalid triangle size.");
+            }
+            else
+                throw new TriangleSizeException("Invalid triangle size.");
+        }
+
+        /* Makes a call to a recussive method to print rows. */
+        static void PrintImage(int size, int unitSize)
+        {
+            tri.pT.X = 0; tri.pT.Y = 0;
+            tri.pB.X = unitSize; tri.pB.Y = unitSize;
+            tri.pC.X = 0; tri.pC.Y = unitSize;
+
+            PrintRows(ref tri, size, size, unitSize);
+        }
+
+        // Recusive method to print rows.   
+        public static int PrintRows(ref Triangle tri, int width, int hight, int unitSize)
+        {
+            bool odd = true;
+
+            if (hight == 0)
+                return 0;
+            else if (hight == width)
+            { //First row
+                PrintColumns(ref tri, width, unitSize / 2, 0, odd);
+                return PrintRows(ref tri, width, hight - unitSize, unitSize);
+            }
+            else
+            { // New Row
+                tri.pT.X = 0;
+                tri.pT.Y += unitSize;
+                tri.pB.X = unitSize;
+                tri.pB.Y += unitSize;
+                tri.pC.X = 0;
+                tri.pC.Y += (unitSize * 2);
+                
+                PrintColumns(ref tri, width, unitSize / 2, 0, odd);
+                return PrintRows(ref tri, width, hight - unitSize, unitSize);
+            }
+        }
+
+        // Recusive method to print columns.
+        public static int PrintColumns(ref Triangle tri, int lenght, int unit, int index, bool odd)
+        {
+            if (lenght == 0)
+                return 0;
+
+            //fist element ... just print it.
+            if (odd && index == 0)
+            {
+                PrintRowColumn(ref tri, unit);
+                return PrintColumns(ref tri, lenght - unit, unit, index = index + unit, !odd);
+            }
+            else if (!odd)
+            { //even col
+                tri.pC.X = tri.pT.X + (unit * 2);
+                tri.pC.Y = tri.pT.Y;
+                PrintRowColumn(ref tri, unit);
+                return PrintColumns(ref tri, lenght - unit, unit, index = index + unit, !odd);
+            }
+            else
+            {   //odd col
+                tri.pT.X = tri.pC.X; tri.pT.Y = tri.pC.Y;
+                tri.pC.X = tri.pB.X; tri.pC.Y = tri.pB.Y;
+                tri.pB.X += (unit * 2);
+                PrintRowColumn(ref tri, unit);
+                return PrintColumns(ref tri, lenght - unit, unit, index = index + unit, !odd);
+            }
+        }
+
+        //Prints the Row and Column index of a graph.
+        public static void PrintRowColumn(ref Triangle tri, int unitSize)
+        {
+            Console.Write(GetRowColumn(tri, unitSize) + " ");
+        }
+
+        //Returns row & column index of a triagle.
+        public static string GetRowColumn(Triangle triagle, int unitSize)
+        {
+            return GetRow(triagle, unitSize) + GetColumn(triagle, unitSize).ToString();
+        }
+
+        //Returns row index of a triagle.
+        private static string GetRow(Triangle triagle, int unitSize)
+        {
+            string[] row = new string[] { "A", "B", "C", "D", "E", "F" };
+            int index = (triagle.pB.Y / (unitSize * 2)) - 1;
+            string temp = row[(triagle.pB.Y / (unitSize * 2)) - 1];
+
+            if (temp != lastRow)
+            {
+                lastRow = temp;
+                Console.Write(System.Environment.NewLine);
+            }
+            return lastRow;
+        }
+
+        //Returns column index of a triagle.
+        private static int GetColumn(Triangle triagle, int unitSize)
+        {
+            int col;
+            col = (triagle.pB.X / (unitSize * 2))+1;
+
+            if(triagle.pT.X == triagle.pC.X)
+            {
+                col = (triagle.pC.X + triagle.pB.X) / (unitSize * 2);
+                return col;
+            }
+
+            col = (triagle.pC.X + triagle.pB.X) / (unitSize * 2);
+            return col;
+        }
+    }
+}
+
+
+
+using System;
+
+namespace Triangle
+{
+    class TriangleSizeException: Exception
+    {
+        public TriangleSizeException()
+        {
+        }
+
+        public TriangleSizeException(string message)
+            :base(message)
+        {
+        }
+        public TriangleSizeException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
+}
+
